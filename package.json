@@ -1,19 +1,23 @@
 {
   "name": "coffeenode-bitsnpieces",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Bits and Pieces",
   "main": "lib/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "coffee-script": "~1.6.3",
-    "coffeenode-types": "~0.1.0",
-    "coffeenode-text": "~0.1.1",
-    "coffeenode-trm": "~0.1.6"
+    "coffee-script": "~1.6.3"
   },
   "author": "",
   "license": "BSD-2-Clause",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/loveencounterflow/coffeenode-bitsnpieces"
+  },
+  "bugs": {
+    "url": "https://github.com/loveencounterflow/coffeenode-bitsnpieces/issues"
+  },
   "larq": {
     "extensions": {},
     "compile-statements": {},
@@ -24,6 +28,7 @@
       }
     }
   },
-  "readme": "ERROR: No README data found!",
-  "_id": "coffeenode-bitsnpieces@0.0.1"
+  "readmeFilename": "README.md",
+  "readme": "Bits and Pieces",
+  "_id": "coffeenode-bitsnpieces@0.0.2"
 }
