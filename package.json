@@ -1,6 +1,6 @@
 {
   "name": "coffeenode-bitsnpieces",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Bits and Pieces",
   "main": "lib/main.js",
   "scripts": {
@@ -30,5 +30,5 @@
   },
   "readmeFilename": "README.md",
   "readme": "Bits and Pieces",
-  "_id": "coffeenode-bitsnpieces@0.0.2"
+  "_id": "coffeenode-bitsnpieces@0.0.3"
 }
