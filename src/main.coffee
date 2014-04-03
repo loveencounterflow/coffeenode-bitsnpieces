@@ -289,6 +289,34 @@ validate_isa_number = ( x ) ->
 
 
 
+#===========================================================================================================
+# ID CREATION
+#-----------------------------------------------------------------------------------------------------------
+@get_app_home = ( routes = null ) ->
+  ### Return the file system route to the current (likely) application folder. This works by traversing all
+the routes in `require[ 'main' ][ 'paths' ]` and checking whether one of the `node_modules` folders
+listed there exists and is a folder; the first match is accepted and returned. If no matching existing
+route is found, an error is thrown.
+
+NB that the algorithm works even if the CoffeeNode Options module has been symlinked from another location
+(rather than 'physically' installed) and even if the application main file has been executed from outside
+the application folder (i.e. this obviates the need to `cd ~/route/to/my/app` before doing `node ./start`
+or whatever—you can simply do `node ~/route/to/my/app/start`), but it does presuppose that (1) there *is*
+a `node_modules` folder in your app folder; (2) there is *no* `node_modules` folder in the subfolder or
+any of the intervening levels (if any) that contains your startup file. Most modules that follow the
+established NodeJS / npm way of structuring modules should naturally comply with these assumptions. ###
+  routes ?= require[ 'main' ][ 'paths' ]
+  #.........................................................................................................
+  for route in routes
+    try
+      return njs_path.dirname route if ( njs_fs.statSync route ).isDirectory()
+    #.......................................................................................................
+    catch error
+      ### silently ignore missing routes: ###
+      continue if error[ 'code' ] is 'ENOENT'
+      throw error
+  #.........................................................................................................
+  throw new Error "unable to determine application home; tested routes: \n\n #{routes.join '\n '}\n"
 
 
 

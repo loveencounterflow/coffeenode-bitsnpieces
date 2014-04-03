@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "coffee-script": "~1.6.3"
+    "coffee-script": "~1.7.1"
   },
   "author": "",
   "license": "BSD-2-Clause",
@@ -18,17 +18,7 @@
   "bugs": {
     "url": "https://github.com/loveencounterflow/coffeenode-bitsnpieces/issues"
   },
-  "larq": {
-    "extensions": {},
-    "compile-statements": {},
-    "%cache": {
-      "routes": {
-        "lib/main.js": 1,
-        "lib/write-jizura-font-table.js": 1
-      }
-    }
-  },
   "readmeFilename": "README.md",
   "readme": "Bits and Pieces",
-  "_id": "coffeenode-bitsnpieces@0.0.4"
+  "_id": "coffeenode-bitsnpieces@0.0.5"
 }
