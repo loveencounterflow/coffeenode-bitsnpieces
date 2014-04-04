@@ -290,7 +290,7 @@ validate_isa_number = ( x ) ->
 
 
 #===========================================================================================================
-# ID CREATION
+# APP INFO
 #-----------------------------------------------------------------------------------------------------------
 @get_app_home = ( routes = null ) ->
   ### Return the file system route to the current (likely) application folder. This works by traversing all
@@ -305,6 +305,7 @@ or whatever—you can simply do `node ~/route/to/my/app/start`), but it does pre
 a `node_modules` folder in your app folder; (2) there is *no* `node_modules` folder in the subfolder or
 any of the intervening levels (if any) that contains your startup file. Most modules that follow the
 established NodeJS / npm way of structuring modules should naturally comply with these assumptions. ###
+  njs_fs = require 'fs'
   routes ?= require[ 'main' ][ 'paths' ]
   #.........................................................................................................
   for route in routes
@@ -318,5 +319,111 @@ established NodeJS / npm way of structuring modules should naturally comply with
   #.........................................................................................................
   throw new Error "unable to determine application home; tested routes: \n\n #{routes.join '\n '}\n"
 
+
+
+
+#===========================================================================================================
+#
+#-----------------------------------------------------------------------------------------------------------
+@compile_options = ( options ) ->
+  TYPES                 = require 'coffeenode-types'
+  count_key             = @compile_options.count_key
+  options[ count_key ] ?= 0
+  #.........................................................................................................
+  for name, value of options
+    switch type = TYPES.type_of value
+      when 'text'
+        @compile_options.resolve_name.call @, options, null, name, value
+      when 'pod'
+        null
+      when 'list'
+        null
+        # for sub_value, idx in list
+  #.........................................................................................................
+  return options
+
+#-----------------------------------------------------------------------------------------------------------
+@_walk_facets = ( value, handler, crumbs ) ->
+  TYPES   = require 'coffeenode-types'
+  crumbs ?= []
+  if      TYPES.isa_pod  value then return @_walk_pod_facets  value, handler, crumbs
+  else if TYPES.isa_list value then return @_walk_list_facets value, handler, crumbs
+  return handler null, crumbs, value
+
+#-----------------------------------------------------------------------------------------------------------
+@_walk_list_facets = ( list, handler, crumbs ) ->
+  for value, idx in list
+    crumbs.push idx
+    @_walk_facets value, handler, crumbs
+    crumbs.pop()
+
+#-----------------------------------------------------------------------------------------------------------
+@_walk_pod_facets = ( pod, handler, crumbs ) ->
+  for name, value of pod
+    crumbs.push name
+    @_walk_facets value, handler, crumbs
+    crumbs.pop()
+
+#-----------------------------------------------------------------------------------------------------------
+@compile_options.count_key   = '%BITSNPIECES/compile-options/change-count'
+@compile_options.no_name_re  = /^\\\$/
+@compile_options.name_re     = /^\$([-_a-zA-Z0-9]+)$/
+
+#-----------------------------------------------------------------------------------------------------------
+@compile_options.resolve_name = ( options, container, key, value ) ->
+  rpr         = ( require 'util' ).inspect
+  count_key   = @compile_options.count_key
+  container  ?= options
+  #.........................................................................................................
+  if ( match = value.match @compile_options.name_re )?
+    new_name  = match[ 1 ]
+    new_value = options[ new_name ]
+    if new_value is undefined
+      throw new Error "member #{rpr key} references undefined key as #{rpr value}"
+    container[ key ]      = new_value
+    options[ count_key ] += 1
+    debug "replaced #{rpr key}: #{rpr value} with #{rpr new_name}: #{rpr new_value}"
+  #.........................................................................................................
+  else
+    new_value             = value.replace @compile_options.no_name_re, '$'
+    container[ key ]      = new_value
+    if value isnt new_value
+      options[ count_key ] += 1
+      debug "replaced #{rpr value} with #{rpr new_value}"
+  #.........................................................................................................
+  return options
+
+#-----------------------------------------------------------------------------------------------------------
+@_value_from_locator = ( container, locator, fallback = undefined ) ->
+  rpr     = ( require 'util' ).inspect
+  crumbs  = locator.split '/'
+  throw new Error "expected a locator starting with a slash, got #{rpr locator}" unless crumbs[ 0 ] is ''
+  crumbs.shift()
+  return @_value_from_crumbs container, locator, crumbs, fallback
+
+#-----------------------------------------------------------------------------------------------------------
+@_value_from_crumbs = ( container, locator, crumbs, fallback = undefined ) ->
+  try
+    return @_value_from_crumbs_inner container, locator, crumbs
+  catch error
+    if /^unable to resolve name/.test error[ 'message' ]
+      return fallback if fallback isnt undefined
+    throw error
+
+#-----------------------------------------------------------------------------------------------------------
+@_value_from_crumbs_inner = ( container, locator, crumbs ) ->
+  rpr         = ( require 'util' ).inspect
+  first_crumb = crumbs.shift()
+  #.........................................................................................................
+  try
+    sub_container = container[ first_crumb ]
+  catch error
+    sub_container = undefined
+  #.........................................................................................................
+  if sub_container is undefined
+    throw new Error "unable to resolve name #{rpr first_crumb} in locator #{rpr locator}"
+  #.........................................................................................................
+  return sub_container if crumbs.length is 0
+  return @_value_from_crumbs_inner sub_container, locator, crumbs
 
 
