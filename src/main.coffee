@@ -8,6 +8,7 @@ njs_path                  = require 'path'
 
 #-----------------------------------------------------------------------------------------------------------
 @equals = ( a, b ) ->
+  ### `equals` is a shim for accessing the NodeJS `assert.deepEqual` method. Use it for PODs and lists. ###
   assert = require 'assert'
   try
     assert.deepEqual a, b
@@ -17,6 +18,7 @@ njs_path                  = require 'path'
 
 #-----------------------------------------------------------------------------------------------------------
 @format_number = ( n ) ->
+  ### A simple number formatter. ###
   n       = n.toString()
   f       = ( n ) -> return h n, /(\d+)(\d{3})/
   h       = ( n, re ) -> n = n.replace re, "$1" + "'" + "$2" while re.test n; return n
@@ -25,7 +27,7 @@ njs_path                  = require 'path'
 #-----------------------------------------------------------------------------------------------------------
 @escape_regex = ( text ) ->
   ### Given a `text`, return the same with all regular expression metacharacters properly escaped. Escaped
-  characters are `[]{}()*+?-.,\^$|#` plus whitespace.###
+  characters are `[]{}()*+?-.,\^$|#` plus whitespace. ###
   #.........................................................................................................
   return text.replace /[-[\]{}()*+?.,\\\/^$|#\s]/g, "\\$&"
 
@@ -240,7 +242,7 @@ validate_isa_number = ( x ) ->
       log create_rnd_id [ 'alice@nosuchname.com' ], 12
       log create_rnd_id [ 'tim@cern.ch' ], 12
 
-      # the same repeated, but yielding random other IDs:
+      # the same repeated, but yielding the same IDs as in the first run:
       log()
       create_rnd_id.rnd.reset()
       log create_rnd_id [ 'foo@example.com' ], 12
@@ -343,28 +345,6 @@ established NodeJS / npm way of structuring modules should naturally comply with
   return options
 
 #-----------------------------------------------------------------------------------------------------------
-@_walk_facets = ( value, handler, crumbs ) ->
-  TYPES   = require 'coffeenode-types'
-  crumbs ?= []
-  if      TYPES.isa_pod  value then return @_walk_pod_facets  value, handler, crumbs
-  else if TYPES.isa_list value then return @_walk_list_facets value, handler, crumbs
-  return handler null, crumbs, value
-
-#-----------------------------------------------------------------------------------------------------------
-@_walk_list_facets = ( list, handler, crumbs ) ->
-  for value, idx in list
-    crumbs.push idx
-    @_walk_facets value, handler, crumbs
-    crumbs.pop()
-
-#-----------------------------------------------------------------------------------------------------------
-@_walk_pod_facets = ( pod, handler, crumbs ) ->
-  for name, value of pod
-    crumbs.push name
-    @_walk_facets value, handler, crumbs
-    crumbs.pop()
-
-#-----------------------------------------------------------------------------------------------------------
 @compile_options.count_key   = '%BITSNPIECES/compile-options/change-count'
 @compile_options.no_name_re  = /^\\\$/
 @compile_options.name_re     = /^\$([-_a-zA-Z0-9]+)$/
@@ -393,37 +373,181 @@ established NodeJS / npm way of structuring modules should naturally comply with
   #.........................................................................................................
   return options
 
+
+#===========================================================================================================
+# WALKING OVER FACETS IN CONTAINERS
 #-----------------------------------------------------------------------------------------------------------
-@_value_from_locator = ( container, locator, fallback = undefined ) ->
-  rpr     = ( require 'util' ).inspect
-  crumbs  = locator.split '/'
-  throw new Error "expected a locator starting with a slash, got #{rpr locator}" unless crumbs[ 0 ] is ''
-  crumbs.shift()
-  return @_value_from_crumbs container, locator, crumbs, fallback
+@walk_containers_crumbs_and_values = ( value, handler ) ->
+  ### Given a `value` and a `handler` with the signature `( error, container, crumbs, value )`, this method
+  will call `handler null, container, crumbs, value` for each 'primitive' sub-value ('leaf value') that is
+  found inside of `value`, where `container` is the list or POD that contains `value`, and `crumbs` is a
+  (possibly empty) list of names that, when transformed as `'/' + crumbs.join '/'`, spells out the locator
+  where `value` was found. When `crumbs` is not empty, its last element will be the index (in case of a
+  list) or the name (in case of a POD) where `value` was found.
+
+  When iteration is done, the method will make one additional call with all arguments set to `null`;
+  consumers are able to detect that iteration has terminated by testing for `crumbs is null`.
+
+  An **example** will show better what's happening:
+
+  ````coffee
+  d =
+    meaningless: [
+      42
+      43
+      { foo: 1, bar: 2, nested: [ 'a', 'b', ] }
+      45 ]
+    deep:
+      down:
+        in:
+          a:
+            drawer:   'a pen'
+            cupboard: 'a pot'
+            box:      'a pill'
+
+  BAP.walk_containers_crumbs_and_values d, ( error, container, crumbs, value ) ->
+    throw error if error?
+    if crumbs is null
+      log 'over'
+      return
+    locator           = '/' + crumbs.join '/'
+    # in case you want to mutate values in a container, use:
+    [ head..., key, ] = crumbs
+    log "#{locator}:", rpr value
+  ````
+
+  Output:
+
+  ````
+  /meaningless/0: 42
+  /meaningless/1: 43
+  /meaningless/2/foo: 1
+  /meaningless/2/bar: 2
+  /meaningless/2/nested/0: 'a'
+  /meaningless/2/nested/1: 'b'
+  /meaningless/3: 45
+  /deep/down/in/a/drawer: 'a pen'
+  /deep/down/in/a/cupboard: 'a pot'
+  /deep/down/in/a/box: 'a pill'
+  over
+  ````
+
+  As can be seen, there are no callbacks made for values that are lists or PODs, only for primitive values
+  (or objects that are no lists and no PODs). Keep in mind that some JavaScript objects may *look* like PODs
+  or lists, but are really something different. As the primary use case for this method is analysis of
+  nested configurations read from a JSON file, such complexities have not been considered in the design of
+  this method.
+
+  You may pass a single primitive value to `@walk_containers_crumbs_and_values`; this will result in a
+  callback where `crumbs` is an empty list and `value` is the value you passed in.
+
+  **Caveats:**
+
+  Because of the way iteration happens in CoffeeScript and JavaScript, it's not a good idea to modify the
+  containers you're currently iterating over. [MDN]() has the following to say:
+
+  > If a property is modified in one iteration and then visited at a later time, its value in the loop is
+  > its value at that later time. A property that is deleted before it has been visited will not be visited
+  > later. Properties added to the object over which iteration is occurring may either be visited or omitted
+  > from iteration. **In general it is best not to add, modify or remove properties from the object during
+  > iteration, other than the property currently being visited.** There is no guarantee whether or not an
+  > added property will be visited, whether a modified property (other than the current one) will be visited
+  > before or after it is modified, or whether a deleted property will be visited before it is deleted.
+
+  **Therefore, if deeper modifications are necessary, you may want to do those on a copy of the object
+  you're inspecting, or else keep a log of intended changes and execute those changes when iteration has
+  stopped.**
+
+  The `crumbs` list in the callback is always the same object, so in case you want to use the values
+  elsewhere—and especially when used in an asynchronous fashion—you may want to make a copy of that list.
+
+  The method currently makes no effort to respect bad naming choices in any way, which means that you may
+  get faulty or troublesome locators in case names are empty, consist of single or double periods, or
+  contain slashes, asterisks or other meta-characters.
+
+  ###
+  container = null
+  crumbs    = []
+  @_walk_containers_crumbs_and_values container, crumbs, value, handler
+  return null
 
 #-----------------------------------------------------------------------------------------------------------
-@_value_from_crumbs = ( container, locator, crumbs, fallback = undefined ) ->
-  try
-    return @_value_from_crumbs_inner container, locator, crumbs
-  catch error
-    if /^unable to resolve name/.test error[ 'message' ]
-      return fallback if fallback isnt undefined
-    throw error
+@_walk_containers_crumbs_and_values = ( container, crumbs, value, handler ) ->
+  ### ( used by @[`walk_containers_crumbs_and_values`](#this.walk_containers_crumbs_and_values)) ###
+  TYPES   = require 'coffeenode-types'
+  if      TYPES.isa_pod  value then return @_walk_pod_crumbs_and_values  container, crumbs, value, handler
+  else if TYPES.isa_list value then return @_walk_list_crumbs_and_values container, crumbs, value, handler
+  handler null, container, crumbs, value
+  handler null, null, null, null if crumbs.length is 0
+  return null
 
 #-----------------------------------------------------------------------------------------------------------
-@_value_from_crumbs_inner = ( container, locator, crumbs ) ->
-  rpr         = ( require 'util' ).inspect
-  first_crumb = crumbs.shift()
+@_walk_list_crumbs_and_values = ( container, crumbs, list, handler ) ->
+  ### ( used by @[`walk_containers_crumbs_and_values`](#this.walk_containers_crumbs_and_values)) ###
+  for value, idx in list
+    crumbs.push idx
+    @_walk_containers_crumbs_and_values list, crumbs, value, handler
+    crumbs.pop()
+  #.........................................................................................................
+  handler null, null, null, null if crumbs.length is 0
+  return null
+
+#-----------------------------------------------------------------------------------------------------------
+@_walk_pod_crumbs_and_values = ( container, crumbs, pod, handler ) ->
+  ### ( used by @[`walk_containers_crumbs_and_values`](#this.walk_containers_crumbs_and_values)) ###
+  for name, value of pod
+    crumbs.push name
+    @_walk_containers_crumbs_and_values pod, crumbs, value, handler
+    crumbs.pop()
+  #.........................................................................................................
+  handler null, null, null, null if crumbs.length is 0
+
+#-----------------------------------------------------------------------------------------------------------
+@container_and_facet_from_locator = ( container, locator ) ->
+  ### The inverse to @[`walk_containers_crumbs_and_values`](#this.walk_containers_crumbs_and_values), this
+  method uses a `locator` to drill down into `container`, recursively applying the 'crumbs' (parts) of
+  the `locator` until all of the locator has been consumed; it will then return a triplet `[ sub_container,
+  key, value, ]`.
+
+  The locator must either be the string `/` (which denotes the `container` itself) or else a string that
+  starts with but does not end with a `/`. ###
+  rpr = ( require 'util' ).inspect
+  if locator is '/'
+    return [ null, null, container, ]
+  else
+    unless /^\/.*?[^\/]$/.test locator
+      throw new Error "locator must start with but not end with a slash, got #{rpr locator}"
+    ( crumbs = locator.split '/' ).shift()
+  return @_container_and_facet_from_crumbs container, locator, crumbs, 0
+
+#-----------------------------------------------------------------------------------------------------------
+@container_and_facet_from_crumbs = ( container, crumbs ) ->
+  ### Same as @[`container_and_facet_from_locator`](#this.container_and_facet_from_locator), but accepting
+  a list of crumbs instead of a locator. ###
+  if crumbs is null or crumbs.length is 0
+    return [ null, null, container, ]
+  locator = '/' + crumbs.join '/'
+  return @_container_and_facet_from_crumbs container, locator, crumbs, 0
+
+#-----------------------------------------------------------------------------------------------------------
+@_container_and_facet_from_crumbs = ( container, locator, crumbs, idx ) ->
+  ### (used by @[`container_and_facet_from_locator`](#this.container_and_facet_from_locator) and
+  @[`container_and_facet_from_crumbs`](#this.container_and_facet_from_crumbs))
+  ###
+  rpr = ( require 'util' ).inspect
+  key = crumbs[ idx ]
+  throw new Error "unable to get crumb #{idx} from locator #rpr locator" unless key?
   #.........................................................................................................
   try
-    sub_container = container[ first_crumb ]
+    value = container[ key ]
   catch error
-    sub_container = undefined
+    value = undefined
   #.........................................................................................................
-  if sub_container is undefined
-    throw new Error "unable to resolve name #{rpr first_crumb} in locator #{rpr locator}"
+  if value is undefined
+    throw new Error "unable to resolve key #{rpr key} in locator #{rpr locator}"
   #.........................................................................................................
-  return sub_container if crumbs.length is 0
-  return @_value_from_crumbs_inner sub_container, locator, crumbs
+  return [ container, key, value ] if idx == crumbs.length - 1
+  return @_container_and_facet_from_crumbs value, locator, crumbs, idx + 1
+  return null
 
 
