@@ -10,6 +10,7 @@
 
 ## API
 
-See the [documentation](http://loveencounterflow.github.io/coffeenode-bitsnpieces)
+See the [intro](http://loveencounterflow.github.io/coffeenode-bitsnpieces)
+and the [generated API documentation](http://loveencounterflow.github.io/coffeenode-bitsnpieces/docs/index.html).
 
 
