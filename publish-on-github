@@ -7,9 +7,5 @@ cd $DIR
 coffeedoc -o gh-pages/docs src && \
 git add --all && \
 git commit -m "autocommit"
-npm version patch && \
-npm publish && \
-git add package.json && \
-git commit -m "version bump"
 git push -u origin master
 echo
