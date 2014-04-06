@@ -550,4 +550,3 @@ established NodeJS / npm way of structuring modules should naturally comply with
   return @_container_and_facet_from_crumbs value, locator, crumbs, idx + 1
   return null
 
-
