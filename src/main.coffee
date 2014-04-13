@@ -296,17 +296,17 @@ validate_isa_number = ( x ) ->
 #-----------------------------------------------------------------------------------------------------------
 @get_app_home = ( routes = null ) ->
   ### Return the file system route to the current (likely) application folder. This works by traversing all
-the routes in `require[ 'main' ][ 'paths' ]` and checking whether one of the `node_modules` folders
-listed there exists and is a folder; the first match is accepted and returned. If no matching existing
-route is found, an error is thrown.
+  the routes in `require[ 'main' ][ 'paths' ]` and checking whether one of the `node_modules` folders
+  listed there exists and is a folder; the first match is accepted and returned. If no matching existing
+  route is found, an error is thrown.
 
-NB that the algorithm works even if the CoffeeNode Options module has been symlinked from another location
-(rather than 'physically' installed) and even if the application main file has been executed from outside
-the application folder (i.e. this obviates the need to `cd ~/route/to/my/app` before doing `node ./start`
-or whatever—you can simply do `node ~/route/to/my/app/start`), but it does presuppose that (1) there *is*
-a `node_modules` folder in your app folder; (2) there is *no* `node_modules` folder in the subfolder or
-any of the intervening levels (if any) that contains your startup file. Most modules that follow the
-established NodeJS / npm way of structuring modules should naturally comply with these assumptions. ###
+  NB that the algorithm works even if the CoffeeNode Options module has been symlinked from another location
+  (rather than 'physically' installed) and even if the application main file has been executed from outside
+  the application folder (i.e. this obviates the need to `cd ~/route/to/my/app` before doing `node ./start`
+  or whatever—you can simply do `node ~/route/to/my/app/start`), but it does presuppose that (1) there *is*
+  a `node_modules` folder in your app folder; (2) there is *no* `node_modules` folder in the subfolder or
+  any of the intervening levels (if any) that contains your startup file. Most modules that follow the
+  established NodeJS / npm way of structuring modules should naturally comply with these assumptions. ###
   njs_fs = require 'fs'
   routes ?= require[ 'main' ][ 'paths' ]
   #.........................................................................................................
@@ -320,58 +320,6 @@ established NodeJS / npm way of structuring modules should naturally comply with
       throw error
   #.........................................................................................................
   throw new Error "unable to determine application home; tested routes: \n\n #{routes.join '\n '}\n"
-
-
-
-
-#===========================================================================================================
-#
-#-----------------------------------------------------------------------------------------------------------
-@compile_options = ( options ) ->
-  TYPES                 = require 'coffeenode-types'
-  count_key             = @compile_options.count_key
-  options[ count_key ] ?= 0
-  #.........................................................................................................
-  for name, value of options
-    switch type = TYPES.type_of value
-      when 'text'
-        @compile_options.resolve_name.call @, options, null, name, value
-      when 'pod'
-        null
-      when 'list'
-        null
-        # for sub_value, idx in list
-  #.........................................................................................................
-  return options
-
-#-----------------------------------------------------------------------------------------------------------
-@compile_options.count_key   = '%BITSNPIECES/compile-options/change-count'
-@compile_options.no_name_re  = /^\\\$/
-@compile_options.name_re     = /^\$([-_a-zA-Z0-9]+)$/
-
-#-----------------------------------------------------------------------------------------------------------
-@compile_options.resolve_name = ( options, container, key, value ) ->
-  rpr         = ( require 'util' ).inspect
-  count_key   = @compile_options.count_key
-  container  ?= options
-  #.........................................................................................................
-  if ( match = value.match @compile_options.name_re )?
-    new_name  = match[ 1 ]
-    new_value = options[ new_name ]
-    if new_value is undefined
-      throw new Error "member #{rpr key} references undefined key as #{rpr value}"
-    container[ key ]      = new_value
-    options[ count_key ] += 1
-    debug "replaced #{rpr key}: #{rpr value} with #{rpr new_name}: #{rpr new_value}"
-  #.........................................................................................................
-  else
-    new_value             = value.replace @compile_options.no_name_re, '$'
-    container[ key ]      = new_value
-    if value isnt new_value
-      options[ count_key ] += 1
-      debug "replaced #{rpr value} with #{rpr new_value}"
-  #.........................................................................................................
-  return options
 
 
 #===========================================================================================================
@@ -444,7 +392,9 @@ established NodeJS / npm way of structuring modules should naturally comply with
   **Caveats:**
 
   Because of the way iteration happens in CoffeeScript and JavaScript, it's not a good idea to modify the
-  containers you're currently iterating over. [MDN]() has the following to say:
+  containers you're currently iterating over.
+  [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...in#Description)
+  has the following to say:
 
   > If a property is modified in one iteration and then visited at a later time, its value in the loop is
   > its value at that later time. A property that is deleted before it has been visited will not be visited
@@ -549,4 +499,16 @@ established NodeJS / npm way of structuring modules should naturally comply with
   return [ container, key, value ] if idx == crumbs.length - 1
   return @_container_and_facet_from_crumbs value, locator, crumbs, idx + 1
   return null
+
+#-----------------------------------------------------------------------------------------------------------
+@set = ( container, locator_or_crumbs, value ) ->
+  TYPES = require 'coffeenode-types'
+  if TYPES.isa_list locator_or_crumbs then  method_name = 'container_and_facet_from_crumbs'
+  else                                      method_name = 'container_and_facet_from_locator'
+  [ container
+    key
+    old_value ]     = @[ method_name ] container, locator_or_crumbs
+  container[ key ]  = value
+  return [ container, key, old_value, ]
+
 

@@ -54,10 +54,6 @@
         
         <li><a href="#this.get_app_home">this.get_app_home</a></li>
         
-        <li><a href="#this.compile_options">this.compile_options</a></li>
-        
-        <li><a href="#this.compile_options.resolve_name">this.compile_options.resolve_name</a></li>
-        
         <li><a href="#this.walk_containers_crumbs_and_values">this.walk_containers_crumbs_and_values</a></li>
         
         <li><a href="#this._walk_containers_crumbs_and_values">this._walk_containers_crumbs_and_values</a></li>
@@ -71,6 +67,8 @@
         <li><a href="#this.container_and_facet_from_crumbs">this.container_and_facet_from_crumbs</a></li>
         
         <li><a href="#this._container_and_facet_from_crumbs">this._container_and_facet_from_crumbs</a></li>
+        
+        <li><a href="#this.set">this.set</a></li>
         
       </ul>
       
@@ -354,20 +352,6 @@ established NodeJS / npm way of structuring modules should naturally comply with
         
         <div class="function">
           <div class="header">
-            <a id="this.compile_options"><h3>this.compile_options(options)</h3></a>
-          </div>
-          
-        </div>
-        
-        <div class="function">
-          <div class="header">
-            <a id="this.compile_options.resolve_name"><h3>this.compile_options.resolve_name(options, container, key, value)</h3></a>
-          </div>
-          
-        </div>
-        
-        <div class="function">
-          <div class="header">
             <a id="this.walk_containers_crumbs_and_values"><h3>this.walk_containers_crumbs_and_values(value, handler)</h3></a>
           </div>
           
@@ -426,7 +410,9 @@ this method.</p>
 callback where <code>crumbs</code> is an empty list and <code>value</code> is the value you passed in.</p>
 <p><strong>Caveats:</strong></p>
 <p>Because of the way iteration happens in CoffeeScript and JavaScript, it&#39;s not a good idea to modify the
-containers you&#39;re currently iterating over. <a href="">MDN</a> has the following to say:</p>
+containers you&#39;re currently iterating over.
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...in#Description">MDN</a>
+has the following to say:</p>
 <blockquote>
 <p>If a property is modified in one iteration and then visited at a later time, its value in the loop is
 its value at that later time. A property that is deleted before it has been visited will not be visited
@@ -524,6 +510,13 @@ a list of crumbs instead of a locator. </p>
             <p> (used by @<a href="#this.container_and_facet_from_locator"><code>container_and_facet_from_locator</code></a> and
 @<a href="#this.container_and_facet_from_crumbs"><code>container_and_facet_from_crumbs</code></a>)</p>
 
+          </div>
+          
+        </div>
+        
+        <div class="function">
+          <div class="header">
+            <a id="this.set"><h3>this.set(container, locator_or_crumbs, value)</h3></a>
           </div>
           
         </div>
