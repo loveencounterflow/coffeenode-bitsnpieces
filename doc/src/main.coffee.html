@@ -40,6 +40,10 @@
         
         <li><a href="#this.get_caller_info_stack">this.get_caller_info_stack</a></li>
         
+        <li><a href="#this.get_caller_stack">this.get_caller_stack</a></li>
+        
+        <li><a href="#this.get_caller_locators">this.get_caller_locators</a></li>
+        
         <li><a href="#this.get_caller_routes">this.get_caller_routes</a></li>
         
         <li><a href="#this.get_filtered_caller_routes">this.get_filtered_caller_routes</a></li>
@@ -54,22 +58,6 @@
         
         <li><a href="#this.get_app_home">this.get_app_home</a></li>
         
-        <li><a href="#this.walk_containers_crumbs_and_values">this.walk_containers_crumbs_and_values</a></li>
-        
-        <li><a href="#this._walk_containers_crumbs_and_values">this._walk_containers_crumbs_and_values</a></li>
-        
-        <li><a href="#this._walk_list_crumbs_and_values">this._walk_list_crumbs_and_values</a></li>
-        
-        <li><a href="#this._walk_pod_crumbs_and_values">this._walk_pod_crumbs_and_values</a></li>
-        
-        <li><a href="#this.container_and_facet_from_locator">this.container_and_facet_from_locator</a></li>
-        
-        <li><a href="#this.container_and_facet_from_crumbs">this.container_and_facet_from_crumbs</a></li>
-        
-        <li><a href="#this._container_and_facet_from_crumbs">this._container_and_facet_from_crumbs</a></li>
-        
-        <li><a href="#this.set">this.set</a></li>
-        
       </ul>
       
     </div>
@@ -82,11 +70,11 @@
         
         <div class="function">
           <div class="header">
-            <a id="this.equals"><h3>this.equals(a, b)</h3></a>
+            <a id="this.equals"><h3>this.equals(P...)</h3></a>
           </div>
           
           <div>
-            <p><code>equals</code> is a shim for accessing the NodeJS <code>assert.deepEqual</code> method. Use it for PODs and lists. </p>
+            <p>TAINT <code>assert.deepEqual</code> is broken as of <a href="https://github.com/joyent/node/issues/7161">https://github.com/joyent/node/issues/7161</a> </p>
 
           </div>
           
@@ -198,6 +186,20 @@ exist, <code>fallback</code>. When the method returns, <code>x[ name ]</code> ha
         <div class="function">
           <div class="header">
             <a id="this.get_caller_info_stack"><h3>this.get_caller_info_stack(delta)</h3></a>
+          </div>
+          
+        </div>
+        
+        <div class="function">
+          <div class="header">
+            <a id="this.get_caller_stack"><h3>this.get_caller_stack(delta)</h3></a>
+          </div>
+          
+        </div>
+        
+        <div class="function">
+          <div class="header">
+            <a id="this.get_caller_locators"><h3>this.get_caller_locators(delta)</h3></a>
           </div>
           
         </div>
@@ -346,177 +348,6 @@ a <code>node_modules</code> folder in your app folder; (2) there is <em>no</em> 
 any of the intervening levels (if any) that contains your startup file. Most modules that follow the
 established NodeJS / npm way of structuring modules should naturally comply with these assumptions. </p>
 
-          </div>
-          
-        </div>
-        
-        <div class="function">
-          <div class="header">
-            <a id="this.walk_containers_crumbs_and_values"><h3>this.walk_containers_crumbs_and_values(value, handler)</h3></a>
-          </div>
-          
-          <div>
-            <p> Given a <code>value</code> and a <code>handler</code> with the signature <code>( error, container, crumbs, value )</code>, this method
-will call <code>handler null, container, crumbs, value</code> for each &#39;primitive&#39; sub-value (&#39;leaf value&#39;) that is
-found inside of <code>value</code>, where <code>container</code> is the list or POD that contains <code>value</code>, and <code>crumbs</code> is a
-(possibly empty) list of names that, when transformed as <code>&#39;/&#39; + crumbs.join &#39;/&#39;</code>, spells out the locator
-where <code>value</code> was found. When <code>crumbs</code> is not empty, its last element will be the index (in case of a
-list) or the name (in case of a POD) where <code>value</code> was found.</p>
-<p>When iteration is done, the method will make one additional call with all arguments set to <code>null</code>;
-consumers are able to detect that iteration has terminated by testing for <code>crumbs is null</code>.</p>
-<p>An <strong>example</strong> will show better what&#39;s happening:</p>
-<pre><code class="lang-coffee">d =
-  meaningless: [
-    <span class="number">42</span>
-    <span class="number">43</span>
-    { foo: <span class="number">1</span>, bar: <span class="number">2</span>, nested: [ <span class="string">'a'</span>, <span class="string">'b'</span>, ] }
-    <span class="number">45</span> ]
-  deep:
-    down:
-      in:
-        a:
-          drawer:   <span class="string">'a pen'</span>
-          cupboard: <span class="string">'a pot'</span>
-          box:      <span class="string">'a pill'</span>
-
-BAP.walk_containers_crumbs_and_values d, ( error, container, crumbs, value ) ->
-  <span class="keyword">throw</span> error <span class="keyword">if</span> error?
-  <span class="keyword">if</span> crumbs is <span class="keyword">null</span>
-    log <span class="string">'over'</span>
-    <span class="keyword">return</span>
-  locator           = <span class="string">'/'</span> + crumbs.join <span class="string">'/'</span>
-  <span class="comment"># in case you want to mutate values in a container, use:</span>
-  [ head..., key, ] = crumbs
-  log <span class="string">"#{locator}:"</span>, rpr value
-</code></pre>
-<p>Output:</p>
-<pre><code>/meaningless/0: 42
-/meaningless/1: 43
-/meaningless/2/foo: 1
-/meaningless/2/bar: 2
-/meaningless/2/nested/0: &#39;a&#39;
-/meaningless/2/nested/1: &#39;b&#39;
-/meaningless/3: 45
-/deep/down/in/a/drawer: &#39;a pen&#39;
-/deep/down/in/a/cupboard: &#39;a pot&#39;
-/deep/down/in/a/box: &#39;a pill&#39;
-over
-</code></pre><p>As can be seen, there are no callbacks made for values that are lists or PODs, only for primitive values
-(or objects that are no lists and no PODs). Keep in mind that some JavaScript objects may <em>look</em> like PODs
-or lists, but are really something different. As the primary use case for this method is analysis of
-nested configurations read from a JSON file, such complexities have not been considered in the design of
-this method.</p>
-<p>You may pass a single primitive value to <code>@walk_containers_crumbs_and_values</code>; this will result in a
-callback where <code>crumbs</code> is an empty list and <code>value</code> is the value you passed in.</p>
-<p><strong>Caveats:</strong></p>
-<p>Because of the way iteration happens in CoffeeScript and JavaScript, it&#39;s not a good idea to modify the
-containers you&#39;re currently iterating over.
-<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...in#Description">MDN</a>
-has the following to say:</p>
-<blockquote>
-<p>If a property is modified in one iteration and then visited at a later time, its value in the loop is
-its value at that later time. A property that is deleted before it has been visited will not be visited
-later. Properties added to the object over which iteration is occurring may either be visited or omitted
-from iteration. <strong>In general it is best not to add, modify or remove properties from the object during
-iteration, other than the property currently being visited.</strong> There is no guarantee whether or not an
-added property will be visited, whether a modified property (other than the current one) will be visited
-before or after it is modified, or whether a deleted property will be visited before it is deleted.</p>
-</blockquote>
-<p><strong>Therefore, if deeper modifications are necessary, you may want to do those on a copy of the object
-you&#39;re inspecting, or else keep a log of intended changes and execute those changes when iteration has
-stopped.</strong></p>
-<p>The <code>crumbs</code> list in the callback is always the same object, so in case you want to use the values
-elsewhere—and especially when used in an asynchronous fashion—you may want to make a copy of that list.</p>
-<p>The method currently makes no effort to respect bad naming choices in any way, which means that you may
-get faulty or troublesome locators in case names are empty, consist of single or double periods, or
-contain slashes, asterisks or other meta-characters.</p>
-
-          </div>
-          
-        </div>
-        
-        <div class="function">
-          <div class="header">
-            <a id="this._walk_containers_crumbs_and_values"><h3>this._walk_containers_crumbs_and_values(container, crumbs, value, handler)</h3></a>
-          </div>
-          
-          <div>
-            <p>( used by @<a href="#this.walk_containers_crumbs_and_values"><code>walk_containers_crumbs_and_values</code></a>) </p>
-
-          </div>
-          
-        </div>
-        
-        <div class="function">
-          <div class="header">
-            <a id="this._walk_list_crumbs_and_values"><h3>this._walk_list_crumbs_and_values(container, crumbs, list, handler)</h3></a>
-          </div>
-          
-          <div>
-            <p>( used by @<a href="#this.walk_containers_crumbs_and_values"><code>walk_containers_crumbs_and_values</code></a>) </p>
-
-          </div>
-          
-        </div>
-        
-        <div class="function">
-          <div class="header">
-            <a id="this._walk_pod_crumbs_and_values"><h3>this._walk_pod_crumbs_and_values(container, crumbs, pod, handler)</h3></a>
-          </div>
-          
-          <div>
-            <p>( used by @<a href="#this.walk_containers_crumbs_and_values"><code>walk_containers_crumbs_and_values</code></a>) </p>
-
-          </div>
-          
-        </div>
-        
-        <div class="function">
-          <div class="header">
-            <a id="this.container_and_facet_from_locator"><h3>this.container_and_facet_from_locator(container, locator)</h3></a>
-          </div>
-          
-          <div>
-            <p> The inverse to @<a href="#this.walk_containers_crumbs_and_values"><code>walk_containers_crumbs_and_values</code></a>, this
-method uses a <code>locator</code> to drill down into <code>container</code>, recursively applying the &#39;crumbs&#39; (parts) of
-the <code>locator</code> until all of the locator has been consumed; it will then return a triplet <code>[ sub_container,
-key, value, ]</code>.</p>
-<p>The locator must either be the string <code>/</code> (which denotes the <code>container</code> itself) or else a string that
-starts with but does not end with a <code>/</code>. </p>
-
-          </div>
-          
-        </div>
-        
-        <div class="function">
-          <div class="header">
-            <a id="this.container_and_facet_from_crumbs"><h3>this.container_and_facet_from_crumbs(container, crumbs)</h3></a>
-          </div>
-          
-          <div>
-            <p> Same as @<a href="#this.container_and_facet_from_locator"><code>container_and_facet_from_locator</code></a>, but accepting
-a list of crumbs instead of a locator. </p>
-
-          </div>
-          
-        </div>
-        
-        <div class="function">
-          <div class="header">
-            <a id="this._container_and_facet_from_crumbs"><h3>this._container_and_facet_from_crumbs(container, locator, crumbs, idx)</h3></a>
-          </div>
-          
-          <div>
-            <p> (used by @<a href="#this.container_and_facet_from_locator"><code>container_and_facet_from_locator</code></a> and
-@<a href="#this.container_and_facet_from_crumbs"><code>container_and_facet_from_crumbs</code></a>)</p>
-
-          </div>
-          
-        </div>
-        
-        <div class="function">
-          <div class="header">
-            <a id="this.set"><h3>this.set(container, locator_or_crumbs, value)</h3></a>
           </div>
           
         </div>
