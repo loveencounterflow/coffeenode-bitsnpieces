@@ -41,6 +41,7 @@ njs_path                  = require 'path'
 #-----------------------------------------------------------------------------------------------------------
 @find_all = ( text, matcher ) ->
   matcher = ( new RegExp matcher.toString() + 'g' ) unless matcher.global
+  console.log macther
   R       = []
   R.push match[ 0 ] while ( match = matcher.exec text )?
   return R
