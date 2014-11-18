@@ -369,5 +369,5 @@ validate_isa_number = ( x ) ->
 @swap_extension = ( route, extension ) ->
   extension = '.' + extension unless extension[ 0 ] is '.'
   extname   = njs_path.extname route
-  return basename[ 0 ... route.length - extname.length ] + extension
+  return route[ 0 ... route.length - extname.length ] + extension
 
