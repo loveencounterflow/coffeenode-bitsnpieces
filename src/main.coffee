@@ -2,7 +2,7 @@
 
 ############################################################################################################
 njs_path                  = require 'path'
-
+LODASH                    = require 'lodash'
 
 
 
@@ -40,11 +40,28 @@ njs_path                  = require 'path'
 
 #-----------------------------------------------------------------------------------------------------------
 @find_all = ( text, matcher ) ->
-  matcher = ( new RegExp matcher.toString() + 'g' ) unless matcher.global
-  console.log macther
-  R       = []
-  R.push match[ 0 ] while ( match = matcher.exec text )?
-  return R
+  ### `BAP.find_all` expects a `text` and a `matcher` (which must be a RegExp object); it returns a
+  (possibly empty) list of all matching parts in the text. If `matcher` does not have the `g` (global) flag
+  set, a new RegExp object will be cloned behind the scenes, so passsing in a regular expression with `g`
+  turned on may improve performance.
+
+  With thanks to http://www.2ality.com/2013/08/regexp-g.html,
+  http://www.2ality.com/2011/04/javascript-overview-of-regular.html.
+  ###
+  unless ( Object::toString.call matcher is '[object RegExp]' ) and matcher.global
+    flags   = if matcher.multiline then 'gm' else 'g'
+    flags  += 'i' if matcher.ignoreCase
+    flags  += 'y' if matcher.sticky
+    matcher = ( new RegExp matcher.source, flags )
+  throw new Error "matcher must be a RegExp object with global flag set" unless matcher.global
+  matcher.lastIndex = 0
+  return ( text.match matcher ) ? []
+
+# #===========================================================================================================
+# # SORTING
+# #-----------------------------------------------------------------------------------------------------------
+# @sort = ( me, getter, comparer = null ) ->
+
 
 
 #===========================================================================================================
@@ -306,6 +323,13 @@ validate_isa_number = ( x ) ->
   R = ( ( ( require 'crypto' ).createHash 'sha1' ).update text, 'utf-8' ).digest 'hex'
   return if length? then R[ 0 ... length ] else R
 
+#-----------------------------------------------------------------------------------------------------------
+@id_from_route = ( route, length, handler ) ->
+  ### Like `id_from_text`, but accepting a file route instead of a text. ###
+  throw new Error "asynchronous `id_from_route` not yet supported"
+  content = njs_fs.readFileSync route
+  R       = ( ( ( require 'crypto' ).createHash 'sha1' ).update content ).digest 'hex'
+  return if length? then R[ 0 ... length ] else R
 
 
 #===========================================================================================================

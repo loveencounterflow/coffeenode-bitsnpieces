@@ -58,6 +58,8 @@
         
         <li><a href="#this.id_from_text">this.id_from_text</a></li>
         
+        <li><a href="#this.id_from_route">this.id_from_route</a></li>
+        
         <li><a href="#this.get_app_home">this.get_app_home</a></li>
         
       </ul>
@@ -123,6 +125,16 @@ escaped. </p>
         <div class="function">
           <div class="header">
             <a id="this.find_all"><h3>this.find_all(text, matcher)</h3></a>
+          </div>
+          
+          <div>
+            <p> <code>BAP.find_all</code> expects a <code>text</code> and a <code>matcher</code> (which must be a RegExp object); it returns a
+(possibly empty) list of all matching parts in the text. If <code>matcher</code> does not have the <code>g</code> (global) flag
+set, a new RegExp object will be cloned behind the scenes, so passsing in a regular expression with <code>g</code>
+turned on may improve performance.</p>
+<p>With thanks to <a href="http://www.2ality.com/2013/08/regexp-g.html">http://www.2ality.com/2013/08/regexp-g.html</a>,
+<a href="http://www.2ality.com/2011/04/javascript-overview-of-regular.html">http://www.2ality.com/2011/04/javascript-overview-of-regular.html</a>.</p>
+
           </div>
           
         </div>
@@ -334,6 +346,18 @@ order. </p>
 <code>create_id</code>, but working on a text rather than a number of arbitrary values. The hash algorithm currently
 used is SHA-1, which returns 40 hex digits; it should be good enough for the task at hand and has the
 advantage of being widely implemented. </p>
+
+          </div>
+          
+        </div>
+        
+        <div class="function">
+          <div class="header">
+            <a id="this.id_from_route"><h3>this.id_from_route(route, length, handler)</h3></a>
+          </div>
+          
+          <div>
+            <p>Like <code>id_from_text</code>, but accepting a file route instead of a text. </p>
 
           </div>
           
