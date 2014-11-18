@@ -326,7 +326,7 @@ validate_isa_number = ( x ) ->
 #-----------------------------------------------------------------------------------------------------------
 @id_from_route = ( route, length, handler ) ->
   ### Like `id_from_text`, but accepting a file route instead of a text. ###
-  throw new Error "asynchronous `id_from_route` not yet supported"
+  throw new Error "asynchronous `id_from_route` not yet supported" if handler?
   content = njs_fs.readFileSync route
   R       = ( ( ( require 'crypto' ).createHash 'sha1' ).update content ).digest 'hex'
   return if length? then R[ 0 ... length ] else R
@@ -361,4 +361,12 @@ validate_isa_number = ( x ) ->
       throw error
   #.........................................................................................................
   throw new Error "unable to determine application home; tested routes: \n\n #{routes.join '\n '}\n"
+
+#===========================================================================================================
+# FS ROUTES
+#-----------------------------------------------------------------------------------------------------------
+@swap_extension = ( route, extension ) ->
+  extension = '.' + extension unless extension[ 0 ] is '.'
+  extname   = njs_path.extname route
+  return basename[ 0 ... route.length - extname.length ] + extension
 
