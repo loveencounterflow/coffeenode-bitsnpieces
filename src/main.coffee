@@ -68,6 +68,25 @@ LODASH                    = require 'lodash'
 #===========================================================================================================
 # RANDOM NUMBERS
 #-----------------------------------------------------------------------------------------------------------
+### see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number ###
+@MIN_SAFE_INTEGER = -( 2 ** 53 ) - 1
+@MAX_SAFE_INTEGER = +( 2 ** 53 ) - 1
+
+#-----------------------------------------------------------------------------------------------------------
+@random_number = ( min = @MIN_SAFE_INTEGER, max = @MAX_SAFE_INTEGER ) ->
+  ### Return a random number between min (inclusive) and max (exclusive).
+  From https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
+  via http://stackoverflow.com/a/1527820/256361. ###
+  return Math.random() * ( max - min ) + min
+
+#-----------------------------------------------------------------------------------------------------------
+@random_integer = ( min = @MIN_SAFE_INTEGER, max = @MAX_SAFE_INTEGER ) ->
+  ### Return a random integer between min (inclusive) and max (inclusive).
+  From https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
+  via http://stackoverflow.com/a/1527820/256361. ###
+  return ( Math.floor Math.random() * ( max - min + 1 ) ) + min
+
+#-----------------------------------------------------------------------------------------------------------
 @get_rnd = ( seed = 1, delta = 1 ) ->
   ### This method returns a simple deterministic pseudo-random number generator—basically like
   `Math.random`, but (1) very probably with a much worse distribution of results, and (2) with predictable
