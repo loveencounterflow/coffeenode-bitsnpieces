@@ -80,7 +80,7 @@ LODASH                    = require 'lodash'
   return Math.random() * ( max - min ) + min
 
 #-----------------------------------------------------------------------------------------------------------
-@random_integer = ( min = @MIN_SAFE_INTEGER, max = @MAX_SAFE_INTEGER ) ->
+@random_integer = ( min = 0, max = 1 ) ->
   ### Return a random integer between min (inclusive) and max (inclusive).
   From https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
   via http://stackoverflow.com/a/1527820/256361. ###
