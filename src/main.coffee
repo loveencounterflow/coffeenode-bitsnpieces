@@ -73,7 +73,7 @@ LODASH                    = require 'lodash'
 @MAX_SAFE_INTEGER = +( 2 ** 53 ) - 1
 
 #-----------------------------------------------------------------------------------------------------------
-@random_number = ( min = @MIN_SAFE_INTEGER, max = @MAX_SAFE_INTEGER ) ->
+@random_number = ( min = 0, max = 1 ) ->
   ### Return a random number between min (inclusive) and max (exclusive).
   From https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
   via http://stackoverflow.com/a/1527820/256361. ###
