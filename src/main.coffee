@@ -97,10 +97,10 @@ LODASH                    = require 'lodash'
 
       BAP = require 'coffeenode-bitsnpieces'
       rnd = BAP.get_rnd() # or, say, `rnd = BAP.get_rnd 123, 0.5`
-      log BAP.rnd() for idx in [ 0 .. 5 ]
+      log rnd() for idx in [ 0 .. 5 ]
       log()
       rnd.reset()
-      log BAP.rnd() for idx in [ 0 .. 5 ]
+      log rnd() for idx in [ 0 .. 5 ]
 
   Please note that there are no strong guarantees made about the quality of the generated values except the
   (1) deterministic repeatability, (2) boundedness, and (3) 'apparent randomness'. Do **not** use this for

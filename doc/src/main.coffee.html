@@ -187,10 +187,10 @@ method will then always result in the same series of numbers. Here is a usage ex
 to reset the generator:</p>
 <pre><code>BAP = <span class="keyword">require</span> <span class="string">'coffeenode-bitsnpieces'</span>
 rnd = BAP.get_rnd() <span class="comment"># or, say, `rnd = BAP.get_rnd 123, 0.5`</span>
-log BAP.rnd() <span class="keyword">for</span> idx in [ <span class="number">0</span> .. <span class="number">5</span> ]
+log rnd() <span class="keyword">for</span> idx in [ <span class="number">0</span> .. <span class="number">5</span> ]
 log()
 rnd.reset()
-log BAP.rnd() <span class="keyword">for</span> idx in [ <span class="number">0</span> .. <span class="number">5</span> ]
+log rnd() <span class="keyword">for</span> idx in [ <span class="number">0</span> .. <span class="number">5</span> ]
 </code></pre><p>Please note that there are no strong guarantees made about the quality of the generated values except the
 (1) deterministic repeatability, (2) boundedness, and (3) &#39;apparent randomness&#39;. Do <strong>not</strong> use this for
 cryptographic purposes. </p>
