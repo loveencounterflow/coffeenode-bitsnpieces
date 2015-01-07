@@ -54,6 +54,8 @@
         
         <li><a href="#this.get_caller_locators">this.get_caller_locators</a></li>
         
+        <li><a href="#this.source_line_from_locator">this.source_line_from_locator</a></li>
+        
         <li><a href="#this.get_caller_routes">this.get_caller_routes</a></li>
         
         <li><a href="#this.get_filtered_caller_routes">this.get_filtered_caller_routes</a></li>
@@ -179,14 +181,27 @@ this is an implementation of the Fisher-Yates shuffle algorithm. </p>
 provides permutations of value in a list. It has been given the <code>ez</code> prefix to indicate that while
 it is straightforward to use, it&#39;s range of applicability is also somewhat limited.</p>
 <p>Basic usage looks like this:</p>
-<pre><code class="lang-coffee">d   = [ <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, ]
-nr  = <span class="number">1</span>
-help nr, d
-<span class="keyword">while</span> BNP.ez_permute d
-  nr += +<span class="number">1</span>
-  help nr, d
+<pre><code class="lang-coffee">demo_permute = ->
+  d   = [ <span class="string">'A'</span>, <span class="string">'B'</span>, <span class="string">'C'</span>, ]
+  nr  = <span class="number">0</span>
+  loop
+    nr += +<span class="number">1</span>
+    help nr, d
+    <span class="keyword">break</span> unless BNP.ez_permute d
 </code></pre>
-<p>So that&#39;s really E-Z.</p>
+<p>You will see 6 permutations, which is great:</p>
+<pre><code>1 [ &#39;A&#39;, &#39;B&#39;, &#39;C&#39; ]
+2 [ &#39;A&#39;, &#39;C&#39;, &#39;B&#39; ]
+3 [ &#39;B&#39;, &#39;A&#39;, &#39;C&#39; ]
+4 [ &#39;B&#39;, &#39;C&#39;, &#39;A&#39; ]
+5 [ &#39;C&#39;, &#39;A&#39;, &#39;B&#39; ]
+6 [ &#39;C&#39;, &#39;B&#39;, &#39;A&#39; ]
+</code></pre><p>So that&#39;s really E-Z. But, one may ask: how does <code>ez_permute</code> know when it&#39;s done all permuations? That&#39;s
+where the limitations come in. What <code>ez_permute</code> really does is it nudges whatever sequence you throw at
+it one step closer to being sorted in a descending order; accordingly, when you give it a sequence that
+is shuffled, then you will get an indeterminate number of permutations; when you pass in a sequence sorted
+in the reverse, you will get <em>no</em> additional permuation at all, because that&#39;s the final state of the
+algorithm. </p>
 
           </div>
           
@@ -302,6 +317,13 @@ exist, <code>fallback</code>. When the method returns, <code>x[ name ]</code> ha
         <div class="function">
           <div class="header">
             <a id="this.get_caller_locators"><h3>this.get_caller_locators(delta)</h3></a>
+          </div>
+          
+        </div>
+        
+        <div class="function">
+          <div class="header">
+            <a id="this.source_line_from_locator"><h3>this.source_line_from_locator(locator, context_delta)</h3></a>
           </div>
           
         </div>

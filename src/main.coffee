@@ -5,7 +5,7 @@ njs_path                  = require 'path'
 njs_fs                    = require 'fs'
 LODASH                    = require 'lodash'
 permute                   = require 'permute'
-
+@test                     = require './test'
 
 
 #-----------------------------------------------------------------------------------------------------------
@@ -94,15 +94,32 @@ permute                   = require 'permute'
   Basic usage looks like this:
 
   ```coffee
-  d   = [ 3, 4, 5, ]
-  nr  = 1
-  help nr, d
-  while BNP.ez_permute d
-    nr += +1
-    help nr, d
+  demo_permute = ->
+    d   = [ 'A', 'B', 'C', ]
+    nr  = 0
+    loop
+      nr += +1
+      help nr, d
+      break unless BNP.ez_permute d
   ```
-  So that's really E-Z.
-  ###
+
+  You will see 6 permutations, which is great:
+
+  ```
+  1 [ 'A', 'B', 'C' ]
+  2 [ 'A', 'C', 'B' ]
+  3 [ 'B', 'A', 'C' ]
+  4 [ 'B', 'C', 'A' ]
+  5 [ 'C', 'A', 'B' ]
+  6 [ 'C', 'B', 'A' ]
+  ```
+
+  So that's really E-Z. But, one may ask: how does `ez_permute` know when it's done all permuations? That's
+  where the limitations come in. What `ez_permute` really does is it nudges whatever sequence you throw at
+  it one step closer to being sorted in a descending order; accordingly, when you give it a sequence that
+  is shuffled, then you will get an indeterminate number of permutations; when you pass in a sequence sorted
+  in the reverse, you will get *no* additional permuation at all, because that's the final state of the
+  algorithm. ###
   return permute list
 
 
@@ -259,6 +276,21 @@ validate_isa_number = ( x ) ->
     R.push "#{cs.getFileName()}/#{cs.getFunctionName()}##{cs.getLineNumber()}:#{cs.getColumnNumber()}"
   #.........................................................................................................
   return R
+
+#-----------------------------------------------------------------------------------------------------------
+@source_line_from_locator = ( locator, context_delta = 0 ) ->
+  match = locator.match /^(.+)#([0-9]+):([0-9]+)$/
+  throw new Error "illegal stack locator #{rpr locator}" unless match?
+  [ _
+    route_with_name
+    line_nr_txt
+    _           ] = match
+  route           = route_with_name.replace /\/[^\/]+$/, ''
+  line_idx        = ( parseInt line_nr_txt, 10 ) + 1
+  source_lines    = ( njs_fs.readFileSync route, encoding: 'utf-8' ).split /\r?\n/
+  if context_delta is 0
+    return source_lines[ line_idx ]
+  return source_lines[ line_idx - context_delta .. line_idx + context_delta ]
 
 #-----------------------------------------------------------------------------------------------------------
 @get_caller_routes = ( delta = 0 ) ->
