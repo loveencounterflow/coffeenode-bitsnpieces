@@ -32,6 +32,8 @@
         
         <li><a href="#this.shuffle">this.shuffle</a></li>
         
+        <li><a href="#this.ez_permute">this.ez_permute</a></li>
+        
         <li><a href="#this.random_number">this.random_number</a></li>
         
         <li><a href="#this.random_integer">this.random_integer</a></li>
@@ -155,10 +157,36 @@ turned on may improve performance.</p>
           <div>
             <p> Shuffles the elements of a list randomly. After the call, the elements of will be—most of the time—
 be reordered (but this is not guaranteed, as there is a realistic probability for recurrence of orderings
-with short lists).</p>
+with short lists). Note that in contradistinction to most implementations you can pass in a &#39;ratio&#39;
+argum,ent whould should be a float in the range <code>0 &lt;= ratio &lt;= 1</code>; if set to a value less than one, a
+random number will be used to decide whether or not to perform a given step in the shuffling process, so
+lists shuffled with zero-ish ratios will show less disorder than lists shuffled with a one-ish ratio.</p>
 <p>Implementation gleaned from
 <a href="http://stackoverflow.com/questions/962802/is-it-correct-to-use-javascript-array-sort-method-for-shuffling">http://stackoverflow.com/questions/962802/is-it-correct-to-use-javascript-array-sort-method-for-shuffling</a>;
 this is an implementation of the Fisher-Yates shuffle algorithm. </p>
+
+          </div>
+          
+        </div>
+        
+        <div class="function">
+          <div class="header">
+            <a id="this.ez_permute"><h3>this.ez_permute(list)</h3></a>
+          </div>
+          
+          <div>
+            <p> A wrapper of <a href="https://github.com/bnoordhuis/node-permute">Ben Noordhuis&#39;s <code>permute</code></a>, this method
+provides permutations of value in a list. It has been given the <code>ez</code> prefix to indicate that while
+it is straightforward to use, it&#39;s range of applicability is also somewhat limited.</p>
+<p>Basic usage looks like this:</p>
+<pre><code class="lang-coffee">d   = [ <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, ]
+nr  = <span class="number">1</span>
+help nr, d
+<span class="keyword">while</span> BNP.ez_permute d
+  nr += +<span class="number">1</span>
+  help nr, d
+</code></pre>
+<p>So that&#39;s really E-Z.</p>
 
           </div>
           

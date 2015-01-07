@@ -4,6 +4,7 @@
 njs_path                  = require 'path'
 njs_fs                    = require 'fs'
 LODASH                    = require 'lodash'
+permute                   = require 'permute'
 
 
 
@@ -64,7 +65,10 @@ LODASH                    = require 'lodash'
 @shuffle = ( list, ratio = 1 ) ->
   ### Shuffles the elements of a list randomly. After the call, the elements of will be—most of the time—
   be reordered (but this is not guaranteed, as there is a realistic probability for recurrence of orderings
-  with short lists).
+  with short lists). Note that in contradistinction to most implementations you can pass in a 'ratio'
+  argum,ent whould should be a float in the range `0 <= ratio <= 1`; if set to a value less than one, a
+  random number will be used to decide whether or not to perform a given step in the shuffling process, so
+  lists shuffled with zero-ish ratios will show less disorder than lists shuffled with a one-ish ratio.
 
   Implementation gleaned from
   http://stackoverflow.com/questions/962802/is-it-correct-to-use-javascript-array-sort-method-for-shuffling;
@@ -74,12 +78,32 @@ LODASH                    = require 'lodash'
   loop
     this_idx += -1
     return list if this_idx < 1
-    if @random_number() <= ratio
+    if ratio >= 1 or @random_number() <= ratio
       # return list if this_idx < 1
       that_idx = @random_integer 0, this_idx
       [ list[ that_idx ], list[ this_idx ] ] = [ list[ this_idx ], list[ that_idx ] ]
   #.........................................................................................................
   return list
+
+#-----------------------------------------------------------------------------------------------------------
+@ez_permute = ( list ) ->
+  ### A wrapper of [Ben Noordhuis's `permute`](https://github.com/bnoordhuis/node-permute), this method
+  provides permutations of value in a list. It has been given the `ez` prefix to indicate that while
+  it is straightforward to use, it's range of applicability is also somewhat limited.
+
+  Basic usage looks like this:
+
+  ```coffee
+  d   = [ 3, 4, 5, ]
+  nr  = 1
+  help nr, d
+  while BNP.ez_permute d
+    nr += +1
+    help nr, d
+  ```
+  So that's really E-Z.
+  ###
+  return permute list
 
 
 
