@@ -58,10 +58,27 @@ LODASH                    = require 'lodash'
   matcher.lastIndex = 0
   return ( text.match matcher ) ? []
 
-# #===========================================================================================================
-# # SORTING
-# #-----------------------------------------------------------------------------------------------------------
-# @sort = ( me, getter, comparer = null ) ->
+#===========================================================================================================
+# UNSORTING
+#-----------------------------------------------------------------------------------------------------------
+LIST.shuffle = ( list ) ->
+  ### Shuffles the elements of a list randomly. After the call, the elements of will be—most of the time—
+  be reordered (but this is not guaranteed, as there is a realistic probability for recurrence of orderings
+  with short lists).
+
+  Implementation gleaned from
+  http://stackoverflow.com/questions/962802/is-it-correct-to-use-javascript-array-sort-method-for-shuffling;
+  this is an implementation of the Fisher-Yates shuffle algorithm. ###
+  this_idx = list.length
+  return list if this_idx < 2
+  #.........................................................................................................
+  loop
+    this_idx += -1
+    return list if this_idx < 1 # < 0 ???
+    that_idx = BNP.random_integer 0, this_idx
+    [ list[ that_idx ], list[ this_idx ] ] = [ list[ this_idx ], list[ that_idx ] ]
+  #.........................................................................................................
+  return list
 
 
 
