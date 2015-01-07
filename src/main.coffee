@@ -61,7 +61,7 @@ LODASH                    = require 'lodash'
 #===========================================================================================================
 # UNSORTING
 #-----------------------------------------------------------------------------------------------------------
-LIST.shuffle = ( list ) ->
+@shuffle = ( list ) ->
   ### Shuffles the elements of a list randomly. After the call, the elements of will be—most of the time—
   be reordered (but this is not guaranteed, as there is a realistic probability for recurrence of orderings
   with short lists).
