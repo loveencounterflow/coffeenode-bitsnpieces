@@ -74,8 +74,8 @@ LODASH                    = require 'lodash'
   #.........................................................................................................
   loop
     this_idx += -1
-    return list if this_idx < 1 # < 0 ???
-    that_idx = BNP.random_integer 0, this_idx
+    return list if this_idx < 1
+    that_idx = @random_integer 0, this_idx
     [ list[ that_idx ], list[ this_idx ] ] = [ list[ this_idx ], list[ that_idx ] ]
   #.........................................................................................................
   return list
