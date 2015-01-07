@@ -70,14 +70,14 @@ LODASH                    = require 'lodash'
   http://stackoverflow.com/questions/962802/is-it-correct-to-use-javascript-array-sort-method-for-shuffling;
   this is an implementation of the Fisher-Yates shuffle algorithm. ###
   return list if ( this_idx = list.length ) < 2
-  min_idx = Math.max 1, this_idx * ratio
   #.........................................................................................................
   loop
     this_idx += -1
-    # return list if this_idx < 1
     return list if this_idx < min_idx
-    that_idx = @random_integer 0, this_idx
-    [ list[ that_idx ], list[ this_idx ] ] = [ list[ this_idx ], list[ that_idx ] ]
+    if @random_number() <= ratio
+      # return list if this_idx < 1
+      that_idx = @random_integer 0, this_idx
+      [ list[ that_idx ], list[ this_idx ] ] = [ list[ this_idx ], list[ that_idx ] ]
   #.........................................................................................................
   return list
 
