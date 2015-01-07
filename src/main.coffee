@@ -73,7 +73,7 @@ LODASH                    = require 'lodash'
   #.........................................................................................................
   loop
     this_idx += -1
-    return list if this_idx < min_idx
+    return list if this_idx < 1
     if @random_number() <= ratio
       # return list if this_idx < 1
       that_idx = @random_integer 0, this_idx
