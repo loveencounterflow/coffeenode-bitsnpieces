@@ -61,7 +61,7 @@ LODASH                    = require 'lodash'
 #===========================================================================================================
 # UNSORTING
 #-----------------------------------------------------------------------------------------------------------
-@shuffle = ( list ) ->
+@shuffle = ( list, ratio = 1 ) ->
   ### Shuffles the elements of a list randomly. After the call, the elements of will be—most of the time—
   be reordered (but this is not guaranteed, as there is a realistic probability for recurrence of orderings
   with short lists).
@@ -69,12 +69,13 @@ LODASH                    = require 'lodash'
   Implementation gleaned from
   http://stackoverflow.com/questions/962802/is-it-correct-to-use-javascript-array-sort-method-for-shuffling;
   this is an implementation of the Fisher-Yates shuffle algorithm. ###
-  this_idx = list.length
-  return list if this_idx < 2
+  return list if ( this_idx = list.length ) < 2
+  min_idx = Math.max 1, this_idx * ratio
   #.........................................................................................................
   loop
     this_idx += -1
-    return list if this_idx < 1
+    # return list if this_idx < 1
+    return list if this_idx < min_idx
     that_idx = @random_integer 0, this_idx
     [ list[ that_idx ], list[ this_idx ] ] = [ list[ this_idx ], list[ that_idx ] ]
   #.........................................................................................................
