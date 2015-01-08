@@ -6,6 +6,7 @@ njs_fs                    = require 'fs'
 LODASH                    = require 'lodash'
 permute                   = require 'permute'
 @test                     = require './test'
+rpr                       = ( require 'util' ).inspect
 
 
 #-----------------------------------------------------------------------------------------------------------
@@ -278,19 +279,35 @@ validate_isa_number = ( x ) ->
   return R
 
 #-----------------------------------------------------------------------------------------------------------
-@source_line_from_locator = ( locator, context_delta = 0 ) ->
-  match = locator.match /^(.+)#([0-9]+):([0-9]+)$/
+@caller_description_from_locator = ( locator ) ->
+  match = locator.match /^(.+)\/([^\/]+)#([0-9]+):([0-9]+)$/
   throw new Error "illegal stack locator #{rpr locator}" unless match?
   [ _
-    route_with_name
+    route
+    name
     line_nr_txt
-    _           ] = match
-  route           = route_with_name.replace /\/[^\/]+$/, ''
-  line_idx        = ( parseInt line_nr_txt, 10 ) + 1
+    col_nr_txt  ] = match
+  line_nr         = parseInt line_nr_txt, 10
+  col_nr          = parseInt  col_nr_txt, 10
+  R =
+    'route':      route
+    'name':       name
+    'line-nr':    line_nr
+    'col-nr':     col_nr
+  R[ 'source' ]   = @_source_line_from_description R
+  return R
+
+#-----------------------------------------------------------------------------------------------------------
+@_source_line_from_description = ( description ) ->
+  route           = description[ 'route' ]
+  line_nr         = description[ 'line-nr' ]
   source_lines    = ( njs_fs.readFileSync route, encoding: 'utf-8' ).split /\r?\n/
-  if context_delta is 0
-    return source_lines[ line_idx ]
-  return source_lines[ line_idx - context_delta .. line_idx + context_delta ]
+  R               = source_lines[ line_nr - 1 ]
+  return R
+  # return R if context_delta is 0
+  # prefix = source_lines[ line_idx - context_delta .. line_idx - 1 ].join '\n'
+  # suffix = source_lines[ line_idx + 1 .. line_idx + context_delta ].join '\n'
+  # return [ prefix, R, suffix, ]
 
 #-----------------------------------------------------------------------------------------------------------
 @get_caller_routes = ( delta = 0 ) ->
@@ -327,7 +344,6 @@ validate_isa_number = ( x ) ->
   a DB. Don't do this. Use `bcrypt` or similar best-practices for password storage. Again, the intent of
   the BITSNPIECES ID utilities is *not* to be 'crypto-safe'; its intent is to give you a tool for generating
   repetition-free IDs. ###
-  rpr = ( require 'util' ).inspect
   return @id_from_text ( ( rpr value for value in values ).join '-' ), length
 
 #-----------------------------------------------------------------------------------------------------------

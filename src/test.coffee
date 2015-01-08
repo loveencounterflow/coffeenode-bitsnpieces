@@ -24,8 +24,8 @@ echo                      = TRM.echo.bind TRM
 # LOADER                    = require './LOADER'
 assert                    = require 'assert'
 #...........................................................................................................
-docopt                    = ( require 'docopt' ).docopt
-BNP                       = require 'coffeenode-bitsnpieces'
+# docopt                    = ( require 'docopt' ).docopt
+BNP                       = require './main'
 # # ESCODEGEN                 = require 'escodegen'
 # # escodegen_options         = ( require '../options' )[ 'escodegen' ]
 # @new                      = require './new'
