@@ -50,17 +50,9 @@
         
         <li><a href="#this.get_caller_info_stack">this.get_caller_info_stack</a></li>
         
-        <li><a href="#this.get_caller_stack">this.get_caller_stack</a></li>
+        <li><a href="#this.get_caller_info">this.get_caller_info</a></li>
         
-        <li><a href="#this.get_caller_locators">this.get_caller_locators</a></li>
-        
-        <li><a href="#this.caller_description_from_locator">this.caller_description_from_locator</a></li>
-        
-        <li><a href="#this._source_line_from_description">this._source_line_from_description</a></li>
-        
-        <li><a href="#this.get_caller_routes">this.get_caller_routes</a></li>
-        
-        <li><a href="#this.get_filtered_caller_routes">this.get_filtered_caller_routes</a></li>
+        <li><a href="#this._source_line_from_caller_info">this._source_line_from_caller_info</a></li>
         
         <li><a href="#this.create_id">this.create_id</a></li>
         
@@ -292,7 +284,7 @@ exist, <code>fallback</code>. When the method returns, <code>x[ name ]</code> ha
         
         <div class="function">
           <div class="header">
-            <a id="this.get_V8_CallSite_objects"><h3>this.get_V8_CallSite_objects(delta)</h3></a>
+            <a id="this.get_V8_CallSite_objects"><h3>this.get_V8_CallSite_objects(error)</h3></a>
           </div>
           
           <div>
@@ -304,49 +296,43 @@ exist, <code>fallback</code>. When the method returns, <code>x[ name ]</code> ha
         
         <div class="function">
           <div class="header">
-            <a id="this.get_caller_info_stack"><h3>this.get_caller_info_stack(delta)</h3></a>
+            <a id="this.get_caller_info_stack"><h3>this.get_caller_info_stack(delta, error, limit, include_source)</h3></a>
+          </div>
+          
+          <div>
+            <p> Return a list of PODs representing information about the call stack; newest items will be closer
+to the start (&#39;top&#39;) of the list.</p>
+<p><code>delta</code> represents the call distance of the site the inquirer is interested about, relative to the
+<em>inquirer</em>; this will be <code>0</code> if that is the very line where the call originated from, <code>1</code> in case another
+function is called to collect this information, and so on.</p>
+<p>A custom error will be produced and analyzed (with a suitably adjusted value for <code>delta</code>) in case no
+<code>error</code> has been given. Often, one will want to use this facility to see what the source for a caught
+error looks like; in that case, just pass in the caught <code>error</code> object along with a <code>delta</code> of (typically)
+<code>0</code> (because the error really originated where the problem occurred).</p>
+<p>It is further possible to cut down on the amount of data returned by setting <code>limit</code> to a smallish
+number; entries too close (with a stack index smaller than <code>delta</code>) or too far from the interesting
+point will be omitted.</p>
+<p>When <code>include_source</code> is <code>true</code>, an attempt will be made to open each source file, read its contents,
+split it into lines, and include the indicated line in the respective entry. Note that this is currently
+done in a very stupid, blocking, and non-memoizing way, so try not to do that if your stack trace is
+hundreds of lines long and includes megabyte-sized sources.</p>
+<p>Also see <code>get_caller_info</code>, which should be handy if you do not need an entire stack but just a single
+targetted entry. </p>
+
           </div>
           
         </div>
         
         <div class="function">
           <div class="header">
-            <a id="this.get_caller_stack"><h3>this.get_caller_stack(delta)</h3></a>
+            <a id="this.get_caller_info"><h3>this.get_caller_info(delta, error, include_source)</h3></a>
           </div>
           
         </div>
         
         <div class="function">
           <div class="header">
-            <a id="this.get_caller_locators"><h3>this.get_caller_locators(delta)</h3></a>
-          </div>
-          
-        </div>
-        
-        <div class="function">
-          <div class="header">
-            <a id="this.caller_description_from_locator"><h3>this.caller_description_from_locator(locator)</h3></a>
-          </div>
-          
-        </div>
-        
-        <div class="function">
-          <div class="header">
-            <a id="this._source_line_from_description"><h3>this._source_line_from_description(description)</h3></a>
-          </div>
-          
-        </div>
-        
-        <div class="function">
-          <div class="header">
-            <a id="this.get_caller_routes"><h3>this.get_caller_routes(delta)</h3></a>
-          </div>
-          
-        </div>
-        
-        <div class="function">
-          <div class="header">
-            <a id="this.get_filtered_caller_routes"><h3>this.get_filtered_caller_routes(delta)</h3></a>
+            <a id="this._source_line_from_caller_info"><h3>this._source_line_from_caller_info(info)</h3></a>
           </div>
           
         </div>

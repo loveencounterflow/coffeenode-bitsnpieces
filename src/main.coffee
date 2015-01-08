@@ -6,7 +6,8 @@ njs_fs                    = require 'fs'
 LODASH                    = require 'lodash'
 permute                   = require 'permute'
 @test                     = require './test'
-rpr                       = ( require 'util' ).inspect
+njs_util                  = require 'util'
+rpr                       = njs_util.inspect
 
 
 #-----------------------------------------------------------------------------------------------------------
@@ -233,103 +234,133 @@ validate_isa_number = ( x ) ->
 #===========================================================================================================
 # CALLER LOCATION
 #-----------------------------------------------------------------------------------------------------------
-@get_V8_CallSite_objects = ( delta = 0 ) ->
+@get_V8_CallSite_objects = ( error = null ) ->
   ### Save original Error.prepareStackTrace ###
   prepareStackTrace_original = Error.prepareStackTrace
   #.........................................................................................................
   Error.prepareStackTrace = ( ignored, stack ) -> return stack
-  error                   = new Error()
+  error                  ?= new Error()
   R                       = error.stack
   #.........................................................................................................
   ### Restore original Error.prepareStackTrace ###
   Error.prepareStackTrace = prepareStackTrace_original
   #.........................................................................................................
-  delta += 1
-  R.splice 0, delta if delta isnt 0
-  #.........................................................................................................
   return R
 
 #-----------------------------------------------------------------------------------------------------------
-@get_caller_info_stack = ( delta = 0 ) ->
-  call_sites = @get_V8_CallSite_objects delta + 1
-  R = []
+@get_caller_info_stack = ( delta = 0, error = null, limit = Infinity, include_source = no ) ->
+  ### Return a list of PODs representing information about the call stack; newest items will be closer
+  to the start ('top') of the list.
+
+  `delta` represents the call distance of the site the inquirer is interested about, relative to the
+  *inquirer*; this will be `0` if that is the very line where the call originated from, `1` in case another
+  function is called to collect this information, and so on.
+
+  A custom error will be produced and analyzed (with a suitably adjusted value for `delta`) in case no
+  `error` has been given. Often, one will want to use this facility to see what the source for a caught
+  error looks like; in that case, just pass in the caught `error` object along with a `delta` of (typically)
+  `0` (because the error really originated where the problem occurred).
+
+  It is further possible to cut down on the amount of data returned by setting `limit` to a smallish
+  number; entries too close (with a stack index smaller than `delta`) or too far from the interesting
+  point will be omitted.
+
+  When `include_source` is `true`, an attempt will be made to open each source file, read its contents,
+  split it into lines, and include the indicated line in the respective entry. Note that this is currently
+  done in a very stupid, blocking, and non-memoizing way, so try not to do that if your stack trace is
+  hundreds of lines long and includes megabyte-sized sources.
+
+  Also see `get_caller_info`, which should be handy if you do not need an entire stack but just a single
+  targetted entry. ###
   #.........................................................................................................
-  for cs in call_sites
+  delta      += +2 unless error?
+  call_sites  = @get_V8_CallSite_objects error
+  R           = []
+  #.........................................................................................................
+  for cs, idx in call_sites
+    continue if delta? and idx < delta
+    break if R.length >= limit
     entry =
       'function-name':    cs.getFunctionName()
       'method-name':      cs.getMethodName()
-      'filename':         cs.getFileName()
+      'route':            cs.getFileName()
       'line-nr':          cs.getLineNumber()
       'column-nr':        cs.getColumnNumber()
+    entry[ 'source' ] = @_source_line_from_caller_info entry if include_source
     R.push entry
   #.........................................................................................................
   return R
 
 #-----------------------------------------------------------------------------------------------------------
-@get_caller_stack = ( delta = 0 ) ->
-  return ( @get_caller_locators delta + 1 ).join '\n'
-
-#-----------------------------------------------------------------------------------------------------------
-@get_caller_locators = ( delta = 0 ) ->
-  R = []
-  #.........................................................................................................
-  for cs in @get_V8_CallSite_objects delta + 1
-    R.push "#{cs.getFileName()}/#{cs.getFunctionName()}##{cs.getLineNumber()}:#{cs.getColumnNumber()}"
-  #.........................................................................................................
+@get_caller_info = ( delta = 0, error = null, include_source = no ) ->
+  R             = ( @get_caller_info_stack delta, error, 1, include_source )[ 0 ]
   return R
 
 #-----------------------------------------------------------------------------------------------------------
-@caller_description_from_locator = ( locator ) ->
-  match = locator.match /^(.+)\/([^\/]+)#([0-9]+):([0-9]+)$/
-  throw new Error "illegal stack locator #{rpr locator}" unless match?
-  [ _
-    route
-    name
-    line_nr_txt
-    col_nr_txt  ] = match
-  line_nr         = parseInt line_nr_txt, 10
-  col_nr          = parseInt  col_nr_txt, 10
-  R =
-    'route':      route
-    'name':       name
-    'line-nr':    line_nr
-    'col-nr':     col_nr
-  R[ 'source' ]   = @_source_line_from_description R
+@_source_line_from_caller_info = ( info ) ->
+  route           = info[ 'route'   ]
+  line_nr         = info[ 'line-nr' ]
+  try
+    source_lines    = ( njs_fs.readFileSync route, encoding: 'utf-8' ).split /\r?\n/
+    R               = source_lines[ line_nr - 1 ]
+  catch error
+    R               = null
   return R
 
-#-----------------------------------------------------------------------------------------------------------
-@_source_line_from_description = ( description ) ->
-  route           = description[ 'route' ]
-  line_nr         = description[ 'line-nr' ]
-  source_lines    = ( njs_fs.readFileSync route, encoding: 'utf-8' ).split /\r?\n/
-  R               = source_lines[ line_nr - 1 ]
-  return R
-  # return R if context_delta is 0
-  # prefix = source_lines[ line_idx - context_delta .. line_idx - 1 ].join '\n'
-  # suffix = source_lines[ line_idx + 1 .. line_idx + context_delta ].join '\n'
-  # return [ prefix, R, suffix, ]
+# #-----------------------------------------------------------------------------------------------------------
+# @get_caller_stack = ( delta = 0 ) ->
+#   return ( @get_caller_locators delta + 1 ).join '\n'
 
-#-----------------------------------------------------------------------------------------------------------
-@get_caller_routes = ( delta = 0 ) ->
-  call_sites = @get_V8_CallSite_objects delta + 1
-  return ( cs.getFileName() for cs in call_sites )
+# #-----------------------------------------------------------------------------------------------------------
+# @get_caller_locators = ( delta = 0 ) ->
+#   R = []
+#   #.........................................................................................................
+#   for cs in @get_V8_CallSite_objects delta + 1
+#     R.push "#{cs.getFileName()}/#{cs.getFunctionName()}##{cs.getLineNumber()}:#{cs.getColumnNumber()}"
+#   #.........................................................................................................
+#   return R
 
-#-----------------------------------------------------------------------------------------------------------
-@get_filtered_caller_routes = ( delta = 0 ) ->
-  call_sites  = @get_V8_CallSite_objects delta + 1
-  seen_routes = {}
-  R           = []
-  #.........................................................................................................
-  for cs in call_sites
-    route = cs.getFileName()
-    ### ignore all duplicate routes: ###
-    continue if seen_routes[ route ]?
-    seen_routes[ route ] = 1
-    ### ignore all 'internal' routes (these typically have no slash, other routes being absolute): ###
-    continue if ( route.indexOf '/' ) is -1
-    R.push route
-  #.........................................................................................................
-  return R
+# #-----------------------------------------------------------------------------------------------------------
+# @caller_description_from_locator = ( locator ) ->
+#   ### TAINT first we build string representations, then we parse them ###
+#   match = locator.match /^(.+)\/([^\/]+)#([0-9]+):([0-9]+)$/
+#   throw new Error "illegal stack locator #{rpr locator}" unless match?
+#   [ _
+#     route
+#     name
+#     line_nr_txt
+#     col_nr_txt  ] = match
+#   line_nr         = parseInt line_nr_txt, 10
+#   col_nr          = parseInt  col_nr_txt, 10
+#   R =
+#     'route':      route
+#     'name':       name
+#     'line-nr':    line_nr
+#     'col-nr':     col_nr
+#   R[ 'source' ]   = @_source_line_from_description R
+#   return R
+
+# #-----------------------------------------------------------------------------------------------------------
+# @get_caller_routes = ( delta = 0 ) ->
+#   call_sites = @get_V8_CallSite_objects delta + 1
+#   return ( cs.getFileName() for cs in call_sites )
+
+# #-----------------------------------------------------------------------------------------------------------
+# @get_filtered_caller_routes = ( delta = 0 ) ->
+#   call_sites  = @get_V8_CallSite_objects delta + 1
+#   seen_routes = {}
+#   R           = []
+#   #.........................................................................................................
+#   for cs in call_sites
+#     route = cs.getFileName()
+#     ### ignore all duplicate routes: ###
+#     continue if seen_routes[ route ]?
+#     seen_routes[ route ] = 1
+#     ### ignore all 'internal' routes (these typically have no slash, other routes being absolute): ###
+#     continue if ( route.indexOf '/' ) is -1
+#     R.push route
+#   #.........................................................................................................
+#   return R
 
 
 #===========================================================================================================
