@@ -1,6 +1,6 @@
 {
   "name": "coffeenode-bitsnpieces",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Bits and Pieces",
   "main": "lib/main.js",
   "scripts": {
