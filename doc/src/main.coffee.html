@@ -32,11 +32,19 @@
         
         <li><a href="#this.shuffle">this.shuffle</a></li>
         
+        <li><a href="#this.get_shuffle">this.get_shuffle</a></li>
+        
+        <li><a href="#this._shuffle">this._shuffle</a></li>
+        
         <li><a href="#this.ez_permute">this.ez_permute</a></li>
         
         <li><a href="#this.random_number">this.random_number</a></li>
         
+        <li><a href="#this.integer_from_normal_float">this.integer_from_normal_float</a></li>
+        
         <li><a href="#this.random_integer">this.random_integer</a></li>
+        
+        <li><a href="#this.get_rnd_int">this.get_rnd_int</a></li>
         
         <li><a href="#this.get_rnd">this.get_rnd</a></li>
         
@@ -153,14 +161,35 @@ turned on may improve performance.</p>
           <div>
             <p> Shuffles the elements of a list randomly. After the call, the elements of will be—most of the time—
 be reordered (but this is not guaranteed, as there is a realistic probability for recurrence of orderings
-with short lists). Note that in contradistinction to most implementations you can pass in a &#39;ratio&#39;
-argum,ent whould should be a float in the range <code>0 &lt;= ratio &lt;= 1</code>; if set to a value less than one, a
-random number will be used to decide whether or not to perform a given step in the shuffling process, so
-lists shuffled with zero-ish ratios will show less disorder than lists shuffled with a one-ish ratio.</p>
-<p>Implementation gleaned from
-<a href="http://stackoverflow.com/questions/962802/is-it-correct-to-use-javascript-array-sort-method-for-shuffling">http://stackoverflow.com/questions/962802/is-it-correct-to-use-javascript-array-sort-method-for-shuffling</a>;
-this is an implementation of the Fisher-Yates shuffle algorithm. </p>
+with short lists).</p>
+<p>This is an implementation of the renowned Fisher-Yates algorithm, but with a twist: You may pass in a
+<code>ratio</code> as second argument (which should be a float in the range <code>0 &lt;= ratio &lt;= 1</code>); if set to a value
+less than one, a random number will be used to decide whether or not to perform a given step in the
+shuffling process, so lists shuffled with zero-ish ratios will show less disorder than lists shuffled with
+a one-ish ratio.</p>
+<p>Implementation gleaned from <a href="http://stackoverflow.com/a/962890/256361">http://stackoverflow.com/a/962890/256361</a>. </p>
 
+          </div>
+          
+        </div>
+        
+        <div class="function">
+          <div class="header">
+            <a id="this.get_shuffle"><h3>this.get_shuffle(seed_0, seed_1)</h3></a>
+          </div>
+          
+          <div>
+            <p> This method works similar to <code>get_rnd</code>; it accepts two <code>seed</code>s which are used to produce random number
+generators and returns a predictable shuffling function that accepts arguments like Bits&#39;N&#39;Pieces
+<code>shuffle</code>. </p>
+
+          </div>
+          
+        </div>
+        
+        <div class="function">
+          <div class="header">
+            <a id="this._shuffle"><h3>this._shuffle(list, ratio, rnd, random_integer)</h3></a>
           </div>
           
         </div>
@@ -217,6 +246,18 @@ via <a href="http://stackoverflow.com/a/1527820/256361">http://stackoverflow.com
         
         <div class="function">
           <div class="header">
+            <a id="this.integer_from_normal_float"><h3>this.integer_from_normal_float(x, min, max)</h3></a>
+          </div>
+          
+          <div>
+            <p>Given a &#39;normal&#39; float <code>x</code> so that <code>0 &lt;= x &lt; 1</code>, return an integer <code>n</code> so that <code>min &lt;= n &lt; min</code>. </p>
+
+          </div>
+          
+        </div>
+        
+        <div class="function">
+          <div class="header">
             <a id="this.random_integer"><h3>this.random_integer(min, max)</h3></a>
           </div>
           
@@ -224,6 +265,18 @@ via <a href="http://stackoverflow.com/a/1527820/256361">http://stackoverflow.com
             <p> Return a random integer between min (inclusive) and max (inclusive).
 From <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random">https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random</a>
 via <a href="http://stackoverflow.com/a/1527820/256361">http://stackoverflow.com/a/1527820/256361</a>. </p>
+
+          </div>
+          
+        </div>
+        
+        <div class="function">
+          <div class="header">
+            <a id="this.get_rnd_int"><h3>this.get_rnd_int(seed, delta)</h3></a>
+          </div>
+          
+          <div>
+            <p>Like <code>get_rnd</code>, but returns a predictable random integer generator. </p>
 
           </div>
           
@@ -317,7 +370,9 @@ split it into lines, and include the indicated line in the respective entry. Not
 done in a very stupid, blocking, and non-memoizing way, so try not to do that if your stack trace is
 hundreds of lines long and includes megabyte-sized sources.</p>
 <p>Also see <code>get_caller_info</code>, which should be handy if you do not need an entire stack but just a single
-targetted entry. </p>
+targetted entry.</p>
+<p>Have a look at <a href="https://github.com/loveencounterflow/guy-test">https://github.com/loveencounterflow/guy-test</a> to see how to use the BNP caller info
+methods to copy with error locations in an asynchronous world. </p>
 
           </div>
           

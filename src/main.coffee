@@ -1,5 +1,6 @@
 
 
+
 ############################################################################################################
 njs_path                  = require 'path'
 njs_fs                    = require 'fs'
@@ -67,22 +68,39 @@ rpr                       = njs_util.inspect
 @shuffle = ( list, ratio = 1 ) ->
   ### Shuffles the elements of a list randomly. After the call, the elements of will be—most of the time—
   be reordered (but this is not guaranteed, as there is a realistic probability for recurrence of orderings
-  with short lists). Note that in contradistinction to most implementations you can pass in a 'ratio'
-  argum,ent whould should be a float in the range `0 <= ratio <= 1`; if set to a value less than one, a
-  random number will be used to decide whether or not to perform a given step in the shuffling process, so
-  lists shuffled with zero-ish ratios will show less disorder than lists shuffled with a one-ish ratio.
+  with short lists).
 
-  Implementation gleaned from
-  http://stackoverflow.com/questions/962802/is-it-correct-to-use-javascript-array-sort-method-for-shuffling;
-  this is an implementation of the Fisher-Yates shuffle algorithm. ###
+  This is an implementation of the renowned Fisher-Yates algorithm, but with a twist: You may pass in a
+  `ratio` as second argument (which should be a float in the range `0 <= ratio <= 1`); if set to a value
+  less than one, a random number will be used to decide whether or not to perform a given step in the
+  shuffling process, so lists shuffled with zero-ish ratios will show less disorder than lists shuffled with
+  a one-ish ratio.
+
+  Implementation gleaned from http://stackoverflow.com/a/962890/256361. ###
+  #.........................................................................................................
+  return list if ( this_idx = list.length ) < 2
+  return @_shuffle list, ratio, Math.random, @random_integer.bind @
+
+#-----------------------------------------------------------------------------------------------------------
+@get_shuffle = ( seed_0 = 0, seed_1 = 1 ) ->
+  ### This method works similar to `get_rnd`; it accepts two `seed`s which are used to produce random number
+  generators and returns a predictable shuffling function that accepts arguments like Bits'N'Pieces
+  `shuffle`. ###
+  rnd             = @get_rnd      seed_0
+  random_integer  = @get_rnd_int  seed_1
+  return ( list, ratio = 1 ) => @_shuffle list, ratio, rnd, random_integer
+
+#-----------------------------------------------------------------------------------------------------------
+@_shuffle = ( list, ratio, rnd, random_integer ) ->
+  #.........................................................................................................
   return list if ( this_idx = list.length ) < 2
   #.........................................................................................................
   loop
     this_idx += -1
     return list if this_idx < 1
-    if ratio >= 1 or @random_number() <= ratio
+    if ratio >= 1 or rnd() <= ratio
       # return list if this_idx < 1
-      that_idx = @random_integer 0, this_idx
+      that_idx = random_integer 0, this_idx
       [ list[ that_idx ], list[ this_idx ] ] = [ list[ this_idx ], list[ that_idx ] ]
   #.........................................................................................................
   return list
@@ -141,11 +159,22 @@ rpr                       = njs_util.inspect
   return Math.random() * ( max - min ) + min
 
 #-----------------------------------------------------------------------------------------------------------
-@random_integer = ( min = 0, max = 1 ) ->
+@integer_from_normal_float = ( x, min = 0, max = 2 ) ->
+  ### Given a 'normal' float `x` so that `0 <= x < 1`, return an integer `n` so that `min <= n < min`. ###
+  return ( Math.floor x * ( max - min ) ) + min
+
+#-----------------------------------------------------------------------------------------------------------
+@random_integer = ( min = 0, max = 2 ) ->
   ### Return a random integer between min (inclusive) and max (inclusive).
   From https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
   via http://stackoverflow.com/a/1527820/256361. ###
-  return ( Math.floor Math.random() * ( max - min + 1 ) ) + min
+  return @integer_from_normal_float Math.random(), min, max
+
+#-----------------------------------------------------------------------------------------------------------
+@get_rnd_int = ( seed = 1, delta = 1 ) ->
+  ### Like `get_rnd`, but returns a predictable random integer generator. ###
+  rnd = @get_rnd seed, delta
+  return ( min = 0, max = 1 ) => @integer_from_normal_float rnd(), min, max
 
 #-----------------------------------------------------------------------------------------------------------
 @get_rnd = ( seed = 1, delta = 1 ) ->
@@ -271,7 +300,10 @@ validate_isa_number = ( x ) ->
   hundreds of lines long and includes megabyte-sized sources.
 
   Also see `get_caller_info`, which should be handy if you do not need an entire stack but just a single
-  targetted entry. ###
+  targetted entry.
+
+  Have a look at https://github.com/loveencounterflow/guy-test to see how to use the BNP caller info
+  methods to copy with error locations in an asynchronous world. ###
   #.........................................................................................................
   delta      += +2 unless error?
   call_sites  = @get_V8_CallSite_objects error
@@ -293,7 +325,11 @@ validate_isa_number = ( x ) ->
 
 #-----------------------------------------------------------------------------------------------------------
 @get_caller_info = ( delta = 0, error = null, include_source = no ) ->
-  R             = ( @get_caller_info_stack delta, error, 1, include_source )[ 0 ]
+  R = null
+  while delta >= 0 and not R?
+    R       = ( @get_caller_info_stack delta, error, 1, include_source )[ 0 ]
+    delta  += -1
+  # console.log '©3cc0i', rpr R
   return R
 
 #-----------------------------------------------------------------------------------------------------------
